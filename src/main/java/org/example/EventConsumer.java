@@ -1,6 +1,7 @@
 package org.example;
 
-import com.example.kafka.protobuf.UserEvent;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -28,19 +29,23 @@ public class EventConsumer {
 
         consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class);
-        consumerConfigs.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, UserEvent.class );
 
-        try(Consumer<String, UserEvent> consumer = new KafkaConsumer<>(consumerConfigs)){
+        try(Consumer<String, DynamicMessage> consumer = new KafkaConsumer<>(consumerConfigs)){
             consumer.subscribe(Collections.singletonList("user-events-proto"));
             while (true) {
-                ConsumerRecords<String, UserEvent> consumerRecords = consumer.poll(Duration.ofSeconds(2));
+                ConsumerRecords<String, DynamicMessage> consumerRecords = consumer.poll(Duration.ofSeconds(2));
                 consumerRecords.forEach(consumerRecord -> {
-                    UserEvent user = consumerRecord.value();
-                    System.out.print("User details { ");
-                    System.out.printf("Id: %s, ", user.getUserId());
-                    System.out.printf("Email: %s, ", user.getEmail());
-                    System.out.printf("Age: %d, ", user.getAge());
-                    System.out.printf("Active: %b } %n", user.getActive());
+                    DynamicMessage user = consumerRecord.value();
+                    Map<Descriptors.FieldDescriptor, Object> fields = user.getAllFields();
+
+                    for (Map.Entry<Descriptors.FieldDescriptor, Object> entry : fields.entrySet()) {
+                        String fieldName = entry.getKey().getName();
+                        Object fieldValue = entry.getValue();
+
+                        System.out.printf(" %s = %s, ", fieldName, fieldValue);
+                    }
+                    System.out.println();
+
                 });
             }
         }
