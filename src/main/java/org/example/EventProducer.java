@@ -1,8 +1,10 @@
 package org.example;
 
 
+import com.example.kafka.protobuf.UserEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
@@ -30,25 +32,25 @@ public class EventProducer {
         properties.forEach((key, value) -> producerConfigs.put((String) key, value));
 
         producerConfigs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        producerConfigs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        producerConfigs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaProtobufSerializer.class);
         producerConfigs.put(AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS, true);
 
 
         System.out.printf("Producer now configured for using SchemaRegistry %n");
-        try (final Producer<String, GenericRecord> producer = new KafkaProducer<>(producerConfigs)) {
+        try (final Producer<String, UserEvent> producer = new KafkaProducer<>(producerConfigs)) {
 
             Schema schema = new Schema.Parser().parse(Files.newInputStream(Paths.get("src/main/avro/user_event.avsc")));
 
-            String topic = "user-events-avro";
-            List<GenericRecord> userEvents = new ArrayList<>();
+            String topic = "user-events-proto";
+            List<UserEvent> userEvents = new ArrayList<>();
 
-            GenericRecord user = getUserObject(schema);
-            GenericRecord userII = getUserObject(schema);
+            UserEvent user = getUserObject();
+            UserEvent userII = getUserObject();
 
             userEvents.add(user);
             userEvents.add(userII);
 
-            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.get("userId").toString(), event), ((metadata, exception) -> {
+            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.getUserId().toString(), event), ((metadata, exception) -> {
                 if (exception != null) {
                     System.err.printf("Producing %s resulted in error %s %n", event, exception);
                 } else {
@@ -60,12 +62,12 @@ public class EventProducer {
         }
     }
 
-    GenericRecord getUserObject(Schema schema) {
-        return new GenericRecordBuilder(schema)
-                .set("userId", "U" + random.nextInt(1000))
-                .set("email", "user@gmail.com")
-                .set("age", random.nextInt(80))
-                .set("active", true)
+    UserEvent getUserObject() {
+        return  UserEvent.newBuilder()
+                .setUserId("U" + random.nextInt(1000))
+                .setEmail("user@gmail.com")
+                .setAge(random.nextInt(80))
+                .setActive(true)
                 .build();
     }
 
