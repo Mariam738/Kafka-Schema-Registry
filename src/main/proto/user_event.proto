@@ -9,4 +9,5 @@ message UserEvent {
   string email = 2;
   int32 age = 3;
   bool active = 4;
+  string country = 5;
 }
