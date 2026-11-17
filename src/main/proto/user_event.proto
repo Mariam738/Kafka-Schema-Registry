@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.example.kafka.protobuf;
+
+option java_multiple_files = true;
+
+message UserEvent {
+  string user_id = 1;
+  string email = 2;
+  int32 age = 3;
+  bool active = 4;
+}
