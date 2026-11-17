@@ -1,8 +1,11 @@
 package org.example;
 
-import com.example.kafka.avro.UserEvent;
+
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -13,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -20,7 +25,6 @@ public class EventProducer {
     private final Random random = new Random();
 
     public void produceUserEvents() {
-        UserEvent.Builder userBuilder = UserEvent.newBuilder();
         Properties properties = loadProperties();
         Map<String, Object> producerConfigs = new HashMap<>();
         properties.forEach((key, value) -> producerConfigs.put((String) key, value));
@@ -31,32 +35,38 @@ public class EventProducer {
 
 
         System.out.printf("Producer now configured for using SchemaRegistry %n");
-        try (final Producer<String, UserEvent> producer = new KafkaProducer<>(producerConfigs)) {
+        try (final Producer<String, GenericRecord> producer = new KafkaProducer<>(producerConfigs)) {
+
+            Schema schema = new Schema.Parser().parse(Files.newInputStream(Paths.get("src/main/avro/user_event.avsc")));
+
             String topic = "user-events-avro";
-            List<UserEvent> userEvents = new ArrayList<>();
-            UserEvent user = getuserObject(userBuilder);
-            UserEvent userII = getuserObject(userBuilder);
+            List<GenericRecord> userEvents = new ArrayList<>();
+
+            GenericRecord user = getUserObject(schema);
+            GenericRecord userII = getUserObject(schema);
 
             userEvents.add(user);
             userEvents.add(userII);
 
-            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.getUserId().toString(), event), ((metadata, exception) -> {
+            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.get("userId").toString(), event), ((metadata, exception) -> {
                 if (exception != null) {
                     System.err.printf("Producing %s resulted in error %s %n", event, exception);
                 } else {
                     System.out.printf("Produced record at offset %s with timestamp %d %n", metadata.offset(), metadata.timestamp());
                 }
             })));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    UserEvent getuserObject(UserEvent.Builder userBuilder) {
-        userBuilder.clearActive().clearEmail().clearAge().clearActive();
-        userBuilder.setUserId("U" + random.nextInt(1000))
-                .setEmail("user@gmail.com")
-                .setAge(random.nextInt(80))
-                .setActive(true);
-        return userBuilder.build();
+    GenericRecord getUserObject(Schema schema) {
+        return new GenericRecordBuilder(schema)
+                .set("userId", "U" + random.nextInt(1000))
+                .set("email", "user@gmail.com")
+                .set("age", random.nextInt(80))
+                .set("active", true)
+                .build();
     }
 
         Properties loadProperties() {

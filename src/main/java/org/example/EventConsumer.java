@@ -5,6 +5,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -30,19 +31,19 @@ public class EventConsumer {
 
         consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
-        consumerConfigs.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true );
+        consumerConfigs.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, false );
 
-        try(Consumer<String, UserEvent> consumer = new KafkaConsumer<>(consumerConfigs)){
+        try(Consumer<String, GenericRecord> consumer = new KafkaConsumer<>(consumerConfigs)){
             consumer.subscribe(Collections.singletonList("user-events-avro"));
             while (true) {
-                ConsumerRecords<String, UserEvent> consumerRecords = consumer.poll(Duration.ofSeconds(2));
+                ConsumerRecords<String, GenericRecord> consumerRecords = consumer.poll(Duration.ofSeconds(2));
                 consumerRecords.forEach(consumerRecord -> {
-                    UserEvent user = consumerRecord.value();
+                    GenericRecord user = consumerRecord.value();
                     System.out.print("User details { ");
-                    System.out.printf("Id: %s, ", user.getUserId());
-                    System.out.printf("Email: %s, ", user.getEmail());
-                    System.out.printf("Age: %d, ", user.getAge());
-                    System.out.printf("Active: %b } %n", user.getActive());
+                    System.out.printf("Id: %s, ", user.get("userId"));
+                    System.out.printf("Email: %s, ", user.get("email"));
+                    System.out.printf("Age: %d, ", user.get("age"));
+                    System.out.printf("Active: %b } %n", user.get("active"));
                 });
             }
         }
