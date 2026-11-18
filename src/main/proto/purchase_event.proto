@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package com.example.kafka.protobuf;
+
+option java_multiple_files = true;
+
+import "user_event.proto";
+
+message PurchaseEvent {
+  string purchase_id = 1;
+  string item = 2;
+  double item_cost = 3;
+  double total_cost = 4;
+  int32 quantity = 5;
+  UserEvent user = 6;
+}
+
+

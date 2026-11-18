@@ -23,7 +23,7 @@ public class DynamicRecordAvroConsumer {
         Properties properties = loadProperties();
         Map<String, Object> consumerConfigs = new HashMap<>();
         properties.forEach((key, value) -> consumerConfigs.put((String) key, value));
-        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "schema-registry-consumer");
+        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "dynamic-avro-consumer");
         consumerConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -36,16 +36,17 @@ public class DynamicRecordAvroConsumer {
                 ConsumerRecords<String, GenericRecord> consumerRecords = consumer.poll(Duration.ofSeconds(2));
                 consumerRecords.forEach(consumerRecord -> {
                     GenericRecord user = consumerRecord.value();
-                    System.out.print("User details { ");
+//                    System.out.print("User details { ");
                     System.out.printf("Id: %s, ", user.get("userId"));
                     System.out.printf("Email: %s, ", user.get("email"));
                     System.out.printf("Age: %d, ", user.get("age"));
-                    System.out.printf("Active: %b } %n", user.get("active"));
+//                    System.out.printf("Active: %b } %n", user.get("active"));
+                    System.out.printf("Online: %b } %n", user.get("online"));
 
 
                     System.out.print("Dynamic Loop   -> { ");
                     for (org.apache.avro.Schema.Field field : user.getSchema().getFields()) {
-                        System.out.printf("%s: %s, ", field.name(), user.get(field.name()));
+                        System.out.printf("%s: %s, ", field.name(), user.get(field.name()).toString());
                     }
                     System.out.println(" }");
                 });

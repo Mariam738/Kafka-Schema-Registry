@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "namespace": "org.example.old",
+  "name": "PurchaseEvent",
+  "fields": [
+    { "name": "purchaseId", "type": "string" },
+    { "name": "item", "type": "string" },
+    { "name": "itemCost", "type": "double" },
+    { "name": "totalCost", "type": "double" },
+    { "name": "quantity", "type": "int" },
+    { "name": "user", "type": "UserEvent" }
+  ]
+}

@@ -1,6 +1,6 @@
 package org.example.avro;
 
-import com.example.kafka.avro.UserEvent;
+import com.example.avro.UserEvent;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -49,12 +49,12 @@ public class SpecificRecordAvroProducer {
     }
 
     UserEvent getuserObject(UserEvent.Builder userBuilder) {
-        userBuilder.clearActive().clearEmail().clearAge().clearActive();
+        userBuilder.clearUserId().clearEmail().clearAge().clearCountry();
         userBuilder.setUserId("U" + random.nextInt(1000))
                 .setEmail("user@gmail.com")
                 .setAge(random.nextInt(80))
-                .setActive(true)
-                .setCountry("egypt");
+//                .setActive(true);
+                .setCountry("Egypt");
         return userBuilder.build();
     }
 

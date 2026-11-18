@@ -1,12 +1,15 @@
 {
   "type": "record",
-  "namespace": "com.example.kafka.avro",
+  "namespace": "org.example.old",
   "name": "UserEvent",
   "fields": [
     { "name": "userId", "type": "string" },
     { "name": "email", "type": "string" },
     { "name": "age", "type": "int" },
     { "name": "active", "type": "boolean" },
-    { "name": "country", "type": "string", "default": ""}
-  ]
+    { "name": "country", "type": "string", "default": ""},
+    { "name": "addresses", "type": {"type": "array", "items": "AddressEvent"}},
+    { "name": "preferences", "type": {"type": "map", "values": "string"}},
+    { "name": "tier", "type": {"type": "enum", "name": "tierType", "symbols": ["SILVER", "PLATINUM", "GOLD"]}}
+   ]
 }

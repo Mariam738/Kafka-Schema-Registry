@@ -65,9 +65,26 @@
                 <artifactId>avro-maven-plugin</artifactId>
                 <version>1.11.3</version>
                 <executions>
-                    <execution>
-                        <goals><goal>schema</goal></goals>
-                    </execution>
+<!--                    <execution>-->
+<!--                        <goals><goal>schema</goal></goals>-->
+<!--                    </execution>-->
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>schema</goal>
+                            </goals>
+                            <configuration>
+                                <imports>
+                                    <import>${project.basedir}/src/main/avro/address_event.avsc</import> <!-- Ordering matters -->
+                                    <import>${project.basedir}/src/main/avro/user_event.avsc</import>
+                                </imports>
+                                <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+                                <includes>
+                                    <include>*.avsc</include>
+                                </includes>
+                                <outputDirectory>${project.basedir}/target/generated-sources/avro/</outputDirectory>
+                            </configuration>
+                        </execution>
                 </executions>
             </plugin>
 

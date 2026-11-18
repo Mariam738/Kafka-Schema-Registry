@@ -1,16 +1,15 @@
 package org.example.proto;
 
-import com.example.kafka.protobuf.UserEvent;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
-import org.apache.avro.Schema;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +18,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
-public class SpecificRecordProtoProducer {
+public class DynamicRecordProtoProducer {
     private final Random random = new Random();
 
     public void produceUserEvents() {
@@ -33,20 +32,22 @@ public class SpecificRecordProtoProducer {
 
 
         System.out.printf("Producer now configured for using SchemaRegistry %n");
-        try (final Producer<String, UserEvent> producer = new KafkaProducer<>(producerConfigs)) {
+        try (final Producer<String, DynamicMessage> producer = new KafkaProducer<>(producerConfigs)) {
 
-            Schema schema = new Schema.Parser().parse(Files.newInputStream(Paths.get("src/main/avro/user_event.avsc")));
+            ProtobufSchema schema = new ProtobufSchema(new String (Files.readAllBytes(Paths.get("src/main/proto/user_event.proto"))));
+            Descriptors.Descriptor descriptor= schema.toDescriptor();
+
 
             String topic = "user-events-proto";
-            List<UserEvent> userEvents = new ArrayList<>();
+            List<DynamicMessage> userEvents = new ArrayList<>();
 
-            UserEvent user = getUserObject();
-            UserEvent userII = getUserObject();
+            DynamicMessage user = getUserObject(descriptor);
+            DynamicMessage userII = getUserObject(descriptor);
 
             userEvents.add(user);
             userEvents.add(userII);
 
-            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.getUserId().toString(), event), ((metadata, exception) -> {
+            userEvents.forEach(event -> producer.send(new ProducerRecord<>(topic, event.getField(descriptor.findFieldByName("user_id")).toString(), event), ((metadata, exception) -> {
                 if (exception != null) {
                     System.err.printf("Producing %s resulted in error %s %n", event, exception);
                 } else {
@@ -58,13 +59,13 @@ public class SpecificRecordProtoProducer {
         }
     }
 
-    UserEvent getUserObject() {
-        return  UserEvent.newBuilder()
-                .setUserId("U" + random.nextInt(1000))
-                .setEmail("user@gmail.com")
-                .setAge(random.nextInt(80))
-                .setActive(true)
-                .setCountry("EGP")
+    DynamicMessage getUserObject(Descriptors.Descriptor descriptor) {
+        return  DynamicMessage.newBuilder(descriptor)
+                .setField(descriptor.findFieldByName("user_id"), "U" + random.nextInt(1000))
+                .setField(descriptor.findFieldByName("email"),"user@gmail.com")
+                .setField(descriptor.findFieldByName("age"), random.nextInt(80))
+//                .setField(descriptor.findFieldByName("active"),true)
+                .setField(descriptor.findFieldByName("country"),"egypt")
                 .build();
     }
 
@@ -81,7 +82,7 @@ public class SpecificRecordProtoProducer {
     }
 
     public static void main(String[] args) {
-        SpecificRecordProtoProducer eventProducer = new SpecificRecordProtoProducer();
+        DynamicRecordProtoProducer eventProducer = new DynamicRecordProtoProducer();
         eventProducer.produceUserEvents();
     }
 

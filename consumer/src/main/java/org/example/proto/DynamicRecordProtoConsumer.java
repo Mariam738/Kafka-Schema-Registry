@@ -23,7 +23,7 @@ public class DynamicRecordProtoConsumer {
         Properties properties = loadProperties();
         Map<String, Object> consumerConfigs = new HashMap<>();
         properties.forEach((key, value) -> consumerConfigs.put((String) key, value));
-        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "schema-registry-consumer-proto");
+        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "dynamic-consumer-proto");
         consumerConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -40,10 +40,12 @@ public class DynamicRecordProtoConsumer {
                     Object userId = user.getField(descriptor.findFieldByName("user_id"));
                     Object email = user.getField(descriptor.findFieldByName("email"));
                     Object age = user.getField(descriptor.findFieldByName("age"));
-                    Object active = user.getField(descriptor.findFieldByName("active"));
+                    Object online = user.getField(descriptor.findFieldByName("online"));
+//                    Object active = user.getField(descriptor.findFieldByName("active"));
 
-                    System.out.printf("User details { Id: %s, Email: %s, Age: %s, Active: %s } %n",
-                            userId, email, age, active);
+//                    System.out.printf("User details { Id: %s, Email: %s, Age: %s, Active: %s } %n", userId, email, age, active);
+//                    System.out.printf("User details { Id: %s, Email: %s, Age: %s } %n", userId, email, age);
+                    System.out.printf("User details { Id: %s, Email: %s, Age: %s, Online: %s } %n", userId, email, age, online);
 
 
                     System.out.println("Dynamic loop: ");

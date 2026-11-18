@@ -51,7 +51,7 @@ public class DynamicRecordAvroProducer {
                 if (exception != null) {
                     System.err.printf("Producing %s resulted in error %s %n", event, exception);
                 } else {
-                    System.out.printf("Produced record at offset %s with timestamp %d %n", metadata.offset(), metadata.timestamp());
+                    System.out.printf("Produced record at offset %s with timestamp %d with id %s %n", metadata.offset(), metadata.timestamp(), event.get("userId"));
                 }
             })));
         } catch (IOException e) {
@@ -64,7 +64,8 @@ public class DynamicRecordAvroProducer {
                 .set("userId", "U" + random.nextInt(1000))
                 .set("email", "user@gmail.com")
                 .set("age", random.nextInt(80))
-                .set("active", true)
+//                .set("active", true)
+                .set("country", "Egypt")
                 .build();
     }
 

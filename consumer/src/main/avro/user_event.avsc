@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "namespace": "com.example.avro",
+  "name": "UserEvent",
+  "fields": [
+    { "name": "email", "type": "string" },
+    { "name": "age", "type": "int" },
+    { "name": "active", "type": "boolean", "default": true},
+    { "name": "online", "type": "boolean", "default": false}
+  ]
+}

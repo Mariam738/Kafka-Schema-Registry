@@ -1,8 +1,8 @@
-package org.example.avro;
+package org.example.proto;
 
-import com.example.kafka.avro.UserEvent;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
+import com.example.kafka.protobuf.UserEvent;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -17,30 +17,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class SpecificRecordAvroConsumer {
+public class SpecificRecordProtoConsumer {
 
     public void consumeUserEvents() {
         Properties properties = loadProperties();
         Map<String, Object> consumerConfigs = new HashMap<>();
         properties.forEach((key, value) -> consumerConfigs.put((String) key, value));
-        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "schema-registry-consumer");
+        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "specific-consumer-proto");
         consumerConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
-        consumerConfigs.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true );
+        consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class);
+        consumerConfigs.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, UserEvent.class );
 
         try(Consumer<String, UserEvent> consumer = new KafkaConsumer<>(consumerConfigs)){
-            consumer.subscribe(Collections.singletonList("user-events-avro"));
+            consumer.subscribe(Collections.singletonList("user-events-proto"));
             while (true) {
                 ConsumerRecords<String, UserEvent> consumerRecords = consumer.poll(Duration.ofSeconds(2));
                 consumerRecords.forEach(consumerRecord -> {
                     UserEvent user = consumerRecord.value();
                     System.out.print("User details { ");
-                    System.out.printf("Id: %s, ", user.getUserId());
+//                    System.out.printf("Id: %s, ", user.getUserId());
                     System.out.printf("Email: %s, ", user.getEmail());
                     System.out.printf("Age: %d, ", user.getAge());
                     System.out.printf("Active: %b } %n", user.getActive());
+                    System.out.printf("Active: %b } %n", user.getOnline());
                 });
             }
         }
@@ -59,7 +60,7 @@ public class SpecificRecordAvroConsumer {
     }
 
     public static void main(String[] args) {
-        SpecificRecordAvroConsumer eventConsumer = new SpecificRecordAvroConsumer();
+        SpecificRecordProtoConsumer eventConsumer = new SpecificRecordProtoConsumer();
         eventConsumer.consumeUserEvents();
     }
 }

@@ -5,8 +5,8 @@ package com.example.kafka.protobuf;
 option java_multiple_files = true;
 
 message UserEvent {
-  string user_id = 1;
-  string email = 2;
+  string email = 1;
+  string user_id = 2;
   int32 age = 3;
   bool active = 4;
   string country = 5;

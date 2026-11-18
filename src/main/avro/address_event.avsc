@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "namespace": "org.example.old",
+  "name": "AddressEvent",
+  "fields": [
+    { "name": "street", "type": "string" },
+    { "name": "city", "type": "string" },
+    { "name": "country", "type": "string" }
+   ]
+}
